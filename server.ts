@@ -11,6 +11,52 @@ const PORT = 3000;
 
 app.use(express.json());
 
+// Valid roll numbers database (can be updated with your actual student list)
+const VALID_ROLL_NUMBERS = [
+  "CSE-001", "CSE-002", "CSE-003", "CSE-004", "CSE-005",
+  "ECE-001", "ECE-002", "ECE-003", "ECE-004", "ECE-005",
+  "MECH-001", "MECH-002", "MECH-003", "MECH-004", "MECH-005",
+  "CE-001", "CE-002", "CE-003",
+  "IT-001", "IT-002", "IT-003"
+];
+
+// REST API endpoint: Login Authentication
+app.post("/api/login", (req, res) => {
+  try {
+    const { name, rollNo } = req.body;
+
+    if (!name || !rollNo) {
+      return res.status(400).json({ message: "Name and roll number are required" });
+    }
+
+    const trimmedName = String(name).trim();
+    const trimmedRollNo = String(rollNo).trim().toUpperCase();
+
+    // Validate roll number format (e.g., CSE-001)
+    const rollNoRegex = /^[A-Z]+-\d{3}$/;
+    if (!rollNoRegex.test(trimmedRollNo)) {
+      return res.status(400).json({ message: "Invalid roll number format (use: ABC-001)" });
+    }
+
+    // Check if roll number is in valid list
+    if (!VALID_ROLL_NUMBERS.includes(trimmedRollNo)) {
+      return res.status(401).json({ message: "Roll number not found in database" });
+    }
+
+    // Login successful
+    const user = {
+      name: trimmedName,
+      rollNo: trimmedRollNo,
+      loginTime: new Date().toISOString(),
+    };
+
+    return res.json({ user });
+  } catch (error: any) {
+    console.error("Login Error:", error);
+    return res.status(500).json({ error: error.message || "Internal server error" });
+  }
+});
+
 // Lazy-loaded GoogleGenAI client to avoid crash on startup if key is missing
 let aiClient: GoogleGenAI | null = null;
 function getGeminiClient() {
