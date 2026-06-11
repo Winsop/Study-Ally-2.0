@@ -11,6 +11,7 @@ import {
 
 // Components imports
 import { Header } from "./components/Header";
+import { LoginTab } from "./components/LoginTab";
 import { DashboardTab } from "./components/DashboardTab";
 import { PlannerTab } from "./components/PlannerTab";
 import { RevisionTab } from "./components/RevisionTab";
@@ -29,6 +30,10 @@ export default function App() {
   // Navigation active tab State setup
   const [activeTab, setActiveTab] = useState<string>("dashboard");
 
+  // Login state management
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [user, setUser] = useState<{ name: string; rollNo: string } | null>(null);
+
   // --- Core State Entities ---
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -46,6 +51,26 @@ export default function App() {
 
   // --- Initial Mount State Hydration ---
   useEffect(() => {
+    // Check if user is already logged in (persistent session)
+    const storedUser = localStorage.getItem("sa_user_session");
+    const refreshCount = parseInt(localStorage.getItem("sa_refresh_count") || "0");
+
+    if (storedUser && refreshCount < 2) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setIsLoggedIn(true);
+        // Increment refresh counter
+        localStorage.setItem("sa_refresh_count", String(refreshCount + 1));
+      } catch (e) {
+        localStorage.removeItem("sa_user_session");
+      }
+    } else if (refreshCount >= 2) {
+      // Force logout after 2 refreshes
+      localStorage.removeItem("sa_user_session");
+      localStorage.removeItem("sa_refresh_count");
+    }
+
     // Determine system date offsets
     const offsetDate = (days: number) => {
       const d = new Date();
@@ -489,6 +514,26 @@ export default function App() {
     setFocusPreference("morning");
   };
 
+  const handleLoginSuccess = (loginUser: { name: string; rollNo: string }) => {
+    setUser(loginUser);
+    setIsLoggedIn(true);
+    localStorage.setItem("sa_user_session", JSON.stringify(loginUser));
+    localStorage.setItem("sa_refresh_count", "0"); // Reset refresh counter on login
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setIsLoggedIn(false);
+    localStorage.removeItem("sa_user_session");
+    localStorage.removeItem("sa_refresh_count");
+    setActiveTab("dashboard"); // Reset to dashboard on logout
+  };
+
+  // Show login page if not logged in
+  if (!isLoggedIn) {
+    return <LoginTab onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 transition-colors duration-200">
       
@@ -496,10 +541,12 @@ export default function App() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Banner quote and dynamic values */}
-        <Header 
-          streak={streak} 
-          theme={theme} 
+        <Header
+          streak={streak}
+          theme={theme}
           onToggleTheme={handleToggleTheme}
+          onLogout={handleLogout}
+          user={user}
           onQuickBackup={() => {
             const data = { subjects, semesters, notes, journals, version: "2.5" };
             alert(`Saves synchronized! Copy study records payload:\n\n${JSON.stringify(data)}`);
