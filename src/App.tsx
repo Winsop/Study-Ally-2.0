@@ -132,8 +132,7 @@ export default function App() {
       { date: offsetDate(0), minutes: 25, subjectId: "s-3", difficultyRating: "E" }
     ]);
 
-    const sVal = localStorage.getItem("sa_streak_c") || "4";
-    setStreak(parseInt(sVal) || 4);
+    // Streak hydration happens below; avoid redeclaring sVal here.
     // Hydrate journals
     const rawJournals = localStorage.getItem("sa_journals_c");
     if (rawJournals) {
