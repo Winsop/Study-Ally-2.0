@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
@@ -67,13 +67,6 @@ app.post("/api/gemini/chat", async (req, res) => {
         temperature: 0.7,
       }
     });
-
-    // Rehydrate history if available
-    if (history && Array.isArray(history)) {
-      for (const turn of history) {
-        // chat session updates locally as we process messages
-      }
-    }
 
     const result = await chatSession.sendMessage({ message });
     return res.json({ text: result.text || "I was unable to formulate a response. Let's try another approach." });
@@ -147,14 +140,16 @@ async function startWebapp() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
+    app.get("*", async (req, res) => {
+      if (req.path.startsWith('/api')) {
+        return res.status(404).json({ error: 'API route not found' });
+      }
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Study Ally full-stack server running on port ${PORT}`);
-  });
+
+  app.listen(PORT, () => console.log(`Study Ally full-stack server running on port ${PORT}`))
 }
 
 startWebapp();
