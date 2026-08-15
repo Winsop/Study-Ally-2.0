@@ -1,3 +1,5 @@
+
+
 {
   "compilerOptions": {
     "target": "ES2022",
@@ -21,6 +23,7 @@
       ]
     },
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["vite/client"]
   }
 }
