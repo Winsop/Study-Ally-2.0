@@ -6,6 +6,12 @@ Study Ally Pro is a web app for organizing subjects and exams, planning study se
 
 [Open Study Ally on Vercel](https://study-ally-2-0.vercel.app/). The web app uses Auth0 sign-in. Study records are stored in the current browser; sign-in does not sync them across devices.
 
+### Demo preview
+
+![Study Ally Pro 2.5 sign-in screen with the Auth0 button](study-ally-sign-in.png)
+
+*Captured from a local run before signing in. The dashboard requires an Auth0 session.*
+
 ## Features
 
 - Manage subjects, exams, and study materials.
@@ -21,6 +27,10 @@ Study Ally Pro is a web app for organizing subjects and exams, planning study se
 4. Run `npm run dev` and open `http://localhost:3000` unless you have set another port.
 
 Run `npm run lint` for TypeScript checks and `npm run build` to bundle the client and server.
+
+## Verification status
+
+The production build passed. A local smoke test also verified the offline coach and planner responses without sending anything to Gemini. The hosted app opened in Edge with an existing session; no study records were changed or captured. The TypeScript check currently reports an arithmetic type error in `src/components/DashboardTab.tsx`.
 
 ## Stack and contributors
 
